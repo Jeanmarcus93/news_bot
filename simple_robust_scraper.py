@@ -192,7 +192,12 @@ class SimpleRobustScraper:
             if link_elem and link_elem.get('href'):
                 link = link_elem['href']
                 if link.startswith('/'):
-                    link = base_url.rstrip('/') + link
+                    # Remove /noticias/ da base_url se o link já contém
+                    base_clean = base_url.rstrip('/')
+                    if base_clean.endswith('/noticias') and link.startswith('/noticias/'):
+                        link = base_clean.replace('/noticias', '') + link
+                    else:
+                        link = base_clean + link
                 elif not link.startswith('http'):
                     link = base_url.rstrip('/') + '/' + link
             else:
@@ -200,7 +205,12 @@ class SimpleRobustScraper:
                 if element.get('href'):
                     link = element['href']
                     if link.startswith('/'):
-                        link = base_url.rstrip('/') + link
+                        # Remove /noticias/ da base_url se o link já contém
+                        base_clean = base_url.rstrip('/')
+                        if base_clean.endswith('/noticias') and link.startswith('/noticias/'):
+                            link = base_clean.replace('/noticias', '') + link
+                        else:
+                            link = base_clean + link
                     elif not link.startswith('http'):
                         link = base_url.rstrip('/') + '/' + link
                 else:
