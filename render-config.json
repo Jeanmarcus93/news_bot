@@ -1,0 +1,22 @@
+{
+  "services": [
+    {
+      "type": "worker",
+      "name": "news-bot-worker",
+      "env": "python",
+      "plan": "free",
+      "buildCommand": "pip install -r requirements.txt",
+      "startCommand": "python start.py",
+      "envVars": [
+        {
+          "key": "TELEGRAM_TOKEN",
+          "sync": false
+        },
+        {
+          "key": "TELEGRAM_CHAT_ID", 
+          "sync": false
+        }
+      ]
+    }
+  ]
+}
