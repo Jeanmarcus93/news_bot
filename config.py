@@ -8,12 +8,6 @@ TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')  # Chat onde o bot enviará as notícias
 
 
-# Twitter/X API Configuration (opcional)
-TWITTER_BEARER_TOKEN = os.getenv('TWITTER_BEARER_TOKEN')
-TWITTER_API_KEY = os.getenv('TWITTER_API_KEY')
-TWITTER_API_SECRET = os.getenv('TWITTER_API_SECRET')
-TWITTER_ACCESS_TOKEN = os.getenv('TWITTER_ACCESS_TOKEN')
-TWITTER_ACCESS_SECRET = os.getenv('TWITTER_ACCESS_SECRET')
 
 # Database Configuration
 DATABASE_PATH = 'news_bot.db'

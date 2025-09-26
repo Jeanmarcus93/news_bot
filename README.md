@@ -7,7 +7,6 @@ Um bot do Telegram que monitora automaticamente notícias sobre apreensão de dr
 - **Monitoramento Automático**: Busca notícias a cada 30 minutos
 - **Múltiplas Fontes**: Portais oficiais e veículos de comunicação
 - **Categorização Inteligente**: Classifica notícias por tipo (drogas, armas, tráfico, facções)
-- **Integração com X (Twitter)**: Monitora redes sociais para notícias em tempo real
 - **Banco de Dados**: Armazena notícias e evita duplicatas
 - **Comandos do Telegram**: Interface amigável para consultar notícias
 
@@ -25,7 +24,6 @@ Um bot do Telegram que monitora automaticamente notícias sobre apreensão de dr
 - **Correio do Povo**
 
 ### Redes Sociais
-- **X (Twitter)** - Contas oficiais e busca por palavras-chave
 
 ## 🚀 Instalação
 
@@ -52,12 +50,6 @@ Edite o arquivo `.env` com suas credenciais:
 TELEGRAM_TOKEN=seu_token_do_telegram_aqui
 TELEGRAM_CHAT_ID=seu_chat_id_aqui
 
-# Twitter/X API Configuration (opcional)
-TWITTER_BEARER_TOKEN=seu_bearer_token_do_twitter
-TWITTER_API_KEY=sua_api_key_do_twitter
-TWITTER_API_SECRET=seu_api_secret_do_twitter
-TWITTER_ACCESS_TOKEN=seu_access_token_do_twitter
-TWITTER_ACCESS_SECRET=seu_access_secret_do_twitter
 ```
 
 ### 4. Obter Token do Telegram
@@ -76,12 +68,6 @@ Para receber notícias automaticamente em um chat específico:
 3. Acesse: `https://api.telegram.org/bot<SEU_TOKEN>/getUpdates`
 4. Encontre o `chat.id` na resposta
 
-### 6. Configurar Twitter API (opcional)
-
-1. Acesse [developer.twitter.com](https://developer.twitter.com)
-2. Crie uma aplicação
-3. Obtenha as credenciais necessárias
-4. Adicione-as ao arquivo `.env`
 
 ## 🎮 Como Usar
 
@@ -116,7 +102,6 @@ news_bot/
 ├── database.py            # Gerenciamento do banco de dados
 ├── telegram_bot.py        # Bot do Telegram
 ├── news_scrapers.py       # Scrapers para portais de notícias
-├── twitter_scraper.py     # Scraper para X (Twitter)
 ├── scheduler.py           # Sistema de agendamento
 ├── requirements.txt       # Dependências Python
 ├── env_example.txt        # Exemplo de configuração
@@ -145,8 +130,6 @@ O bot monitora automaticamente termos relacionados a:
 # Testar scraper de notícias
 python news_scrapers.py
 
-# Testar scraper do Twitter
-python twitter_scraper.py
 
 # Testar agendador
 python scheduler.py

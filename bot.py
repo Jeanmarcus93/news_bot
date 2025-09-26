@@ -15,8 +15,6 @@ from datetime import datetime
 from database import NewsDatabase
 from news_scrapers import NewsScraper
 from simple_robust_scraper import SimpleRobustScraper
-# Twitter removido temporariamente devido a rate limits
-# from twitter_scraper import TwitterScraper
 from config import TELEGRAM_TOKEN, TELEGRAM_CHAT_ID
 
 # Configuração de logging
@@ -46,8 +44,6 @@ class NewsBot:
             'Todas as Fontes': '📰'
         }
         self.scraper = NewsScraper()
-        # Twitter removido temporariamente devido a rate limits
-        # self.twitter_scraper = TwitterScraper()
         self.application = None  # Será definido quando o bot iniciar
         
         # Configura os teclados
@@ -244,7 +240,6 @@ Digite /help para ver todos os comandos disponíveis."""
 /stats - Estatísticas do bot
 /search <termo> - Buscar notícias específicas
 /refresh_api - Buscar via NewsAPI
-/refresh_twitter - Buscar no Twitter/X
 /refresh_all - Buscar em todas as fontes
 /help - Esta ajuda
 
@@ -485,16 +480,6 @@ Digite /help para ver todos os comandos disponíveis."""
             await update.message.reply_text("❌ Erro ao buscar estatísticas.", reply_markup=self.reply_keyboard)
     
     
-    async def refresh_twitter_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Comando para buscar notícias no Twitter/X"""
-        try:
-            # Twitter/X removido temporariamente devido a rate limits
-            await update.message.reply_text("🚫 Twitter/X temporariamente desabilitado devido a rate limits da API.\n\nUse '🔄 Atualizar Notícias' para buscar em outras fontes.", reply_markup=self.reply_keyboard)
-            
-            
-        except Exception as e:
-            logger.error(f"Error in refresh_twitter_command: {e}")
-            await update.message.reply_text("❌ Erro no comando Twitter/X. Tente novamente.", reply_markup=self.reply_keyboard)
     
     async def refresh_all_sources_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Comando para buscar em todas as fontes"""
@@ -508,8 +493,6 @@ Digite /help para ver todos os comandos disponíveis."""
             total_found = 0
             total_saved = 0
             
-            # 1. Twitter/X removido temporariamente devido a rate limits
-            logger.info("Twitter/X temporariamente desabilitado devido a rate limits")
             
             # 2. Busca via scraping robusto (Fontes oficiais)
             try:
@@ -1227,8 +1210,6 @@ Escolha uma das opções abaixo:
             # Fontes oficiais
             message += "✅ Fontes Oficiais de Segurança - Ativas\n"
             
-            # Twitter/X
-            message += "🚫 Twitter/X - Temporariamente desabilitado\n"
             message += "   ⚠️ Rate limits da API causando travamentos\n"
             
             # Scraping tradicional
@@ -1273,7 +1254,6 @@ Escolha uma das opções abaixo:
         application.add_handler(CommandHandler("latest", self.latest_command))
         application.add_handler(CommandHandler("category", self.category_command))
         application.add_handler(CommandHandler("stats", self.stats_command))
-        application.add_handler(CommandHandler("refresh_twitter", self.refresh_twitter_command))
         application.add_handler(CommandHandler("refresh_all", self.refresh_all_sources_command))
         
         # Callback query handlers
