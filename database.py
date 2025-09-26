@@ -162,6 +162,23 @@ class NewsDatabase:
             logger.error(f"Error getting sent news: {e}")
             return []
     
+    def get_viewed_news(self, limit=None):
+        """Retorna notícias já visualizadas"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                
+                query = "SELECT * FROM news WHERE viewed = TRUE ORDER BY created_at DESC"
+                if limit:
+                    query += f" LIMIT {limit}"
+                
+                cursor.execute(query)
+                return cursor.fetchall()
+                
+        except Exception as e:
+            logger.error(f"Error getting viewed news: {e}")
+            return []
+    
     def get_news_by_category(self, category, limit=None):
         """Retorna notícias de uma categoria específica"""
         try:
