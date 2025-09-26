@@ -31,6 +31,7 @@ def run_bot():
         from bot import NewsBot
         from config import TELEGRAM_TOKEN
         from telegram.ext import Application
+        import asyncio
         
         if not TELEGRAM_TOKEN:
             logger.error("❌ TELEGRAM_TOKEN não configurado!")
@@ -54,8 +55,22 @@ def run_bot():
         # Inicia o scheduler para atualização automática
         bot.start_scheduler()
         
-        # Inicia o bot
-        application.run_polling()
+        # Inicia o bot usando asyncio
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(application.initialize())
+        loop.run_until_complete(application.start())
+        loop.run_until_complete(application.updater.start_polling())
+        
+        # Mantém o bot rodando
+        try:
+            loop.run_forever()
+        except KeyboardInterrupt:
+            logger.info("🛑 Parando bot...")
+        finally:
+            loop.run_until_complete(application.stop())
+            loop.run_until_complete(application.shutdown())
+            loop.close()
             
     except Exception as e:
         logger.error(f"❌ Erro no bot: {e}")
