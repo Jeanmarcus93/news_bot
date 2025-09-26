@@ -36,7 +36,7 @@ def run_bot():
             
             # Importa e executa o bot real
             from bot import NewsBot
-            from config import TELEGRAM_TOKEN
+            from config.config import TELEGRAM_TOKEN
             from telegram.ext import Application
             import asyncio
             
