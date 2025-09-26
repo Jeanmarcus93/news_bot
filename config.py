@@ -23,7 +23,7 @@ SEARCH_KEYWORDS = [
     # Drogas
     'apreensão drogas', 'cocaína', 'maconha', 'crack', 'ecstasy',
     'heroína', 'LSD', 'drogas ilícitas', 'entorpecentes', 'bunker',
-    'venda drogas', 'comércio drogas', 'narcóticos', 'substâncias ilícitas',
+    'narcóticos', 'substâncias ilícitas',
     
     # Armas
     'apreensão armas', 'arma de fogo', 'munição', 'explosivo',
@@ -39,8 +39,7 @@ SEARCH_KEYWORDS = [
     
     # GAECO e operações especiais
     'GAECO', 'lavagem de dinheiro', 'contas abertas',
-    'operação policial', 'investigação criminal', 'destruído',
-    'destruição', 'desmantela'
+    'operação policial', 'investigação criminal', 'desmantela'
 ]
 
 RS_LOCATIONS = [
