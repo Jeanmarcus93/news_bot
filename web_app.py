@@ -24,67 +24,96 @@ keep_alive_thread = None
 keep_alive_running = False
 
 def run_bot():
-    """Executa o bot em uma thread separada"""
+    """Executa o bot em uma thread separada com restart automático"""
     global bot_running
-    try:
-        bot_running = True
-        logger.info("🤖 Iniciando bot em thread separada...")
-        
-        # Importa e executa o bot real
-        from bot import NewsBot
-        from config import TELEGRAM_TOKEN
-        from telegram.ext import Application
-        import asyncio
-        
-        if not TELEGRAM_TOKEN:
-            logger.error("❌ TELEGRAM_TOKEN não configurado!")
-            return
-            
-        # Cria o bot
-        bot = NewsBot()
-        
-        # Configura a aplicação
-        application = Application.builder().token(TELEGRAM_TOKEN).build()
-        
-        # Configura os handlers
-        bot.setup_handlers(application)
-        
-        # Define a aplicação no bot para usar no scheduler
-        bot.application = application
-        
-        logger.info("🤖 Bot iniciado com sucesso!")
-        logger.info("📱 Use /start no Telegram para começar a usar o bot")
-        
-        # Inicia o scheduler para atualização automática
-        bot.start_scheduler()
-        
-        # Inicia o bot usando asyncio
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        loop.run_until_complete(application.initialize())
-        loop.run_until_complete(application.start())
-        loop.run_until_complete(application.updater.start_polling())
-        
-        # Mantém o bot rodando
+    restart_count = 0
+    max_restarts = 5
+    
+    while restart_count < max_restarts:
         try:
-            loop.run_forever()
-        except KeyboardInterrupt:
-            logger.info("🛑 Parando bot...")
-        finally:
-            loop.run_until_complete(application.stop())
-            loop.run_until_complete(application.shutdown())
-            loop.close()
+            bot_running = True
+            logger.info(f"🤖 Iniciando bot em thread separada... (tentativa {restart_count + 1})")
             
-    except Exception as e:
-        logger.error(f"❌ Erro no bot: {e}")
-        bot_running = False
+            # Importa e executa o bot real
+            from bot import NewsBot
+            from config import TELEGRAM_TOKEN
+            from telegram.ext import Application
+            import asyncio
+            
+            if not TELEGRAM_TOKEN:
+                logger.error("❌ TELEGRAM_TOKEN não configurado!")
+                return
+                
+            # Cria o bot
+            bot = NewsBot()
+            
+            # Configura a aplicação
+            application = Application.builder().token(TELEGRAM_TOKEN).build()
+            
+            # Configura os handlers
+            bot.setup_handlers(application)
+            
+            # Define a aplicação no bot para usar no scheduler
+            bot.application = application
+            
+            logger.info("🤖 Bot iniciado com sucesso!")
+            logger.info("📱 Use /start no Telegram para começar a usar o bot")
+            
+            # Inicia o scheduler para atualização automática
+            bot.start_scheduler()
+            
+            # Inicia o bot usando asyncio
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            loop.run_until_complete(application.initialize())
+            loop.run_until_complete(application.start())
+            loop.run_until_complete(application.updater.start_polling())
+            
+            # Mantém o bot rodando
+            try:
+                loop.run_forever()
+            except KeyboardInterrupt:
+                logger.info("🛑 Parando bot...")
+                break
+            except Exception as e:
+                logger.error(f"❌ Erro no loop do bot: {e}")
+                restart_count += 1
+                if restart_count < max_restarts:
+                    logger.info(f"🔄 Reiniciando bot em 10 segundos... (tentativa {restart_count + 1})")
+                    time.sleep(10)
+                    continue
+                else:
+                    logger.error("❌ Máximo de tentativas de restart atingido!")
+                    break
+            finally:
+                # Para o bot
+                try:
+                    loop.run_until_complete(application.stop())
+                    loop.run_until_complete(application.shutdown())
+                    loop.close()
+                except:
+                    pass
+                    
+        except Exception as e:
+            logger.error(f"❌ Erro crítico no bot: {e}")
+            restart_count += 1
+            if restart_count < max_restarts:
+                logger.info(f"🔄 Reiniciando bot em 15 segundos... (tentativa {restart_count + 1})")
+                time.sleep(15)
+                continue
+            else:
+                logger.error("❌ Máximo de tentativas de restart atingido!")
+                break
+    
+    bot_running = False
+    logger.error("❌ Bot parou definitivamente após múltiplas tentativas de restart")
 
 def keep_alive_ping():
     """Sistema de keep-alive para evitar suspensão do Render"""
     global keep_alive_running
     
     keep_alive_running = True
-    logger.info("🔄 Sistema de keep-alive iniciado (ping a cada 8s)")
+    logger.info("🔄 Sistema de keep-alive iniciado (ping a cada 5s)")
     
     while keep_alive_running:
         try:
@@ -101,8 +130,8 @@ def keep_alive_ping():
         except Exception as e:
             logger.error(f"❌ Erro no keep-alive ping: {e}")
         
-        # Aguarda 8 segundos antes do próximo ping (mais frequente)
-        time.sleep(8)
+        # Aguarda 5 segundos antes do próximo ping (ainda mais frequente)
+        time.sleep(5)
 
 @app.route('/')
 def health_check():
@@ -138,6 +167,24 @@ def start_bot():
     else:
         return jsonify({"message": "Bot já está rodando", "status": "running"})
 
+@app.route('/restart')
+def restart_bot():
+    """Endpoint para reiniciar o bot"""
+    global bot_thread, bot_running
+    
+    logger.info("🔄 Reiniciando bot via endpoint...")
+    bot_running = False
+    
+    if bot_thread and bot_thread.is_alive():
+        # Aguarda a thread atual terminar
+        bot_thread.join(timeout=5)
+    
+    # Inicia nova thread
+    bot_thread = threading.Thread(target=run_bot, daemon=True)
+    bot_thread.start()
+    
+    return jsonify({"message": "Bot reiniciado", "status": "restarted"})
+
 if __name__ == "__main__":
     # Inicia o bot automaticamente
     logger.info("🚀 Iniciando aplicação web + bot...")
@@ -156,7 +203,7 @@ if __name__ == "__main__":
     # Inicia o servidor web
     port = int(os.environ.get('PORT', 5000))
     logger.info(f"🌐 Servidor web iniciando na porta {port}")
-    logger.info("🔄 Sistema de keep-alive ativo para evitar suspensão do Render (ping a cada 8s)")
+    logger.info("🔄 Sistema de keep-alive ativo para evitar suspensão do Render (ping a cada 5s)")
     
     try:
         app.run(host='0.0.0.0', port=port, debug=False, threaded=True)
