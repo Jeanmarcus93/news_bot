@@ -8,6 +8,7 @@ import logging
 import schedule
 import threading
 import asyncio
+import sys
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes, CallbackQueryHandler
 from datetime import datetime
@@ -42,16 +43,7 @@ class NewsBot:
             'DOF MS': '🚔',
             'PC SC': '👮',
             'PC PR': '👮',
-            'G1 RS': '📺',
-            'R7 RS': '📺',
-            'SB News': '📺',
-            'Correio do Povo': '📰',
-            'GauchaZH': '📱',
-            'Diário SM': '📰',
-            'Gaz': '📰',
-            'NewsAPI': '📰',
-            'Sul21': '🌐',
-            'Terra POA': '🌍'
+            'Todas as Fontes': '📰'
         }
         self.scraper = NewsScraper()
         # Twitter removido temporariamente devido a rate limits
@@ -306,7 +298,7 @@ Digite /help para ver todos os comandos disponíveis."""
                             if 'T' in published_date:
                                 dt = datetime.fromisoformat(published_date.replace('Z', '+00:00'))
                                 formatted_date = f"📅 {dt.strftime('%d/%m/%Y %H:%M')}\n"
-                        except:
+                        except (ValueError, TypeError):
                             formatted_date = f"📅 {published_date}\n"
                     
                     # Cria mensagem detalhada para cada notícia
@@ -422,7 +414,7 @@ Digite /help para ver todos os comandos disponíveis."""
                             if 'T' in published_date:
                                 dt = datetime.fromisoformat(published_date.replace('Z', '+00:00'))
                                 formatted_date = f"📅 {dt.strftime('%d/%m/%Y %H:%M')}\n"
-                        except:
+                        except (ValueError, TypeError):
                             formatted_date = f"📅 {published_date}\n"
                     
                     # Cria mensagem detalhada para cada notícia
@@ -697,7 +689,7 @@ Escolha uma das opções abaixo:
                             if 'T' in published_date:
                                 dt = datetime.fromisoformat(published_date.replace('Z', '+00:00'))
                                 formatted_published = f"📅 Publicado: {dt.strftime('%d/%m/%Y %H:%M')}\n"
-                        except:
+                        except (ValueError, TypeError):
                             formatted_published = f"📅 Publicado: {published_date}\n"
                     
                     formatted_sent = ""
@@ -707,7 +699,7 @@ Escolha uma das opções abaixo:
                             if 'T' in sent_date:
                                 dt = datetime.fromisoformat(sent_date.replace('Z', '+00:00'))
                                 formatted_sent = f"📤 Enviado: {dt.strftime('%d/%m/%Y %H:%M')}\n"
-                        except:
+                        except (ValueError, TypeError):
                             formatted_sent = f"📤 Enviado: {sent_date}\n"
                     
                     # Cria mensagem detalhada
@@ -915,7 +907,7 @@ Escolha uma das opções abaixo:
                             if 'T' in published_date:
                                 dt = datetime.fromisoformat(published_date.replace('Z', '+00:00'))
                                 formatted_date = f"📅 {dt.strftime('%d/%m/%Y %H:%M')}\n"
-                        except:
+                        except (ValueError, TypeError):
                             formatted_date = f"📅 {published_date}\n"
                     
                     # Cria mensagem para a notícia
@@ -1026,7 +1018,7 @@ Escolha uma das opções abaixo:
                             if 'T' in published_date:
                                 dt = datetime.fromisoformat(published_date.replace('Z', '+00:00'))
                                 formatted_date = f"📅 {dt.strftime('%d/%m/%Y %H:%M')}\n"
-                        except:
+                        except (ValueError, TypeError):
                             formatted_date = f"📅 {published_date}\n"
                     
                     # Cria mensagem para a notícia
@@ -1169,7 +1161,7 @@ Escolha uma das opções abaixo:
                             if 'T' in published_date:
                                 dt = datetime.fromisoformat(published_date.replace('Z', '+00:00'))
                                 formatted_date = f"📅 {dt.strftime('%d/%m/%Y %H:%M')}\n"
-                        except:
+                        except (ValueError, TypeError):
                             formatted_date = f"📅 {published_date}\n"
                     
                     # Cria mensagem para notícia visualizada
@@ -1298,17 +1290,17 @@ def main():
     """Função principal"""
     print("""
     ╔══════════════════════════════════════════════════════════════╗
-    ║         Bot de Notícias RS - ATUALIZAÇÃO AUTOMÁTICA        ║
+    ║         Bot de Notícias RS - ATUALIZAÇÃO AUTOMÁTICA          ║
     ║                                                              ║
-    ║  Monitora notícias sobre:                                   ║
+    ║  Monitora notícias sobre:                                    ║
     ║  • 🚨 Apreensão de drogas                                   ║
     ║  • 🔫 Apreensão de armas                                    ║
     ║  • 🏴 Tráfico e organizações criminosas                     ║
     ║  • 👥 Facções e milícias                                    ║
     ║                                                              ║
-    ║  🎯 Botões fixos na parte inferior para fácil acesso!      ║
+    ║  🎯 Botões fixos na parte inferior para fácil acesso!       ║
     ║  ⏰ Atualização automática a cada 60 minutos                ║
-    ║  Fontes: NewsAPI + Scraping Robusto + Portais Oficiais      ║
+    ║  Fontes: NewsAPI + Scraping Robusto + Portais Oficiais       ║
     ╚══════════════════════════════════════════════════════════════╝
     """)
     

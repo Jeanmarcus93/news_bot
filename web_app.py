@@ -75,12 +75,17 @@ if __name__ == "__main__":
     bot_thread = threading.Thread(target=run_bot, daemon=True)
     bot_thread.start()
     
-    # Importa e inicia o bot real
-    try:
-        from bot import main as bot_main
-        bot_main()
-    except Exception as e:
-        logger.error(f"❌ Erro ao iniciar bot: {e}")
+    # Importa e inicia o bot real em thread separada
+    def start_bot_main():
+        try:
+            from bot import main as bot_main
+            bot_main()
+        except Exception as e:
+            logger.error(f"❌ Erro ao iniciar bot: {e}")
+    
+    # Inicia o bot em thread separada para não bloquear o Flask
+    bot_main_thread = threading.Thread(target=start_bot_main, daemon=True)
+    bot_main_thread.start()
     
     # Inicia o servidor web
     port = int(os.environ.get('PORT', 5000))

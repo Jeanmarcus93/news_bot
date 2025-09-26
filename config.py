@@ -51,10 +51,10 @@ RS_LOCATIONS = [
 # Portal URLs
 PORTAL_URLS = {
     'PRF': [
-        'https://www.gov.br/prf/pt-br/acesso-a-informacao/acoes-e-programas/noticias/'
+        'https://www.gov.br/prf/pt-br/noticias/ultimas'
     ],
     'PF': [
-        'https://www.gov.br/pf/pt-br/assuntos/noticias/'
+        'https://www.gov.br/pf/pt-br/assuntos/noticias/ultimas-noticias'
     ],
     'Brigada_Militar': [
         'https://www.brigadamilitar.rs.gov.br/noticias/'

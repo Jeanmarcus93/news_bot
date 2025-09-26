@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 import logging
 from datetime import datetime, timedelta
 import re
-from typing import List, Dict, Optional
+from typing import List, Dict
 from urllib.parse import urljoin, urlparse
 from database import NewsDatabase
 from config import SEARCH_KEYWORDS, RS_LOCATIONS, PORTAL_URLS
