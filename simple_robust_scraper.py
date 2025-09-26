@@ -39,8 +39,10 @@ class SimpleRobustScraper:
         retry_strategy = Retry(
             total=3,
             status_forcelist=[429, 500, 502, 503, 504],
-            method_whitelist=["HEAD", "GET", "OPTIONS"],
-            backoff_factor=1
+            allowed_methods=["HEAD", "GET", "OPTIONS"],
+            backoff_factor=1,
+            connect=60,
+            read=60
         )
         
         adapter = HTTPAdapter(max_retries=retry_strategy)
@@ -89,12 +91,12 @@ class SimpleRobustScraper:
                 'name': 'Polícia Civil',
                 'url': 'https://www.pc.rs.gov.br/noticias/',
                 'selectors': {
-                    'articles': 'h3, h4, .item, .noticia, article',  # Múltiplos selectors para capturar
-                    'title': 'h3 a, h4 a, .titulo a, a',  # Títulos das notícias
-                    'link': 'h3 a, h4 a, .titulo a, a',  # Links das notícias
-                    'date': '.data, .date, time, .timestamp'  # Datas das notícias
+                    'articles': 'h3, h4, .item, .noticia, article, .news-item',  # Múltiplos selectors para capturar
+                    'title': 'h3 a, h4 a, .titulo a, a, .news-title',  # Títulos das notícias
+                    'link': 'h3 a, h4 a, .titulo a, a, .news-link',  # Links das notícias
+                    'date': '.data, .date, time, .timestamp, .news-date'  # Datas das notícias
                 },
-                'rate_limit': 2.0
+                'rate_limit': 3.0  # Aumentado para dar mais tempo
             },
             {
                 'name': 'Brigada Militar',
@@ -111,9 +113,9 @@ class SimpleRobustScraper:
                 'name': 'PM SC',
                 'url': 'https://www.pm.sc.gov.br/noticias/',
                 'selectors': {
-                    'articles': 'a[href*="/noticias/"]',  # Links diretos para notícias
-                    'title': 'a[href*="/noticias/"]',  # Título é o texto do link
-                    'link': 'a[href*="/noticias/"]',  # Link direto
+                    'articles': '.noticia, a[href*="/noticia"]',  # Usa .noticia e links diretos
+                    'title': '.noticia, a[href*="/noticia"]',  # Título do elemento .noticia ou link
+                    'link': 'a[href*="/noticia"]',  # Link direto das notícias
                     'date': '.data, .date, time, .timestamp'
                 },
                 'rate_limit': 2.0
@@ -142,11 +144,11 @@ class SimpleRobustScraper:
             },
             {
                 'name': 'PC SC',
-                'url': 'https://pc.sc.gov.br/noticias/',
+                'url': 'https://pc.sc.gov.br/',
                 'selectors': {
-                    'articles': 'h3, article',
-                    'title': 'h3 a, h3',
-                    'link': 'h3 a, h3',
+                    'articles': 'article, .post, h3',  # Usa article, .post e h3
+                    'title': 'article, .post, h3',  # Título dos elementos
+                    'link': 'article a, .post a, h3 a',  # Links dentro dos elementos
                     'date': '.data, .date, time, .timestamp'
                 },
                 'rate_limit': 2.0
@@ -270,7 +272,7 @@ class SimpleRobustScraper:
             max_retries = 3
             for attempt in range(max_retries):
                 try:
-                    response = self.session.get(config['url'], timeout=30)
+                    response = self.session.get(config['url'], timeout=60)
                     response.raise_for_status()
                     break
                 except (requests.exceptions.SSLError, requests.exceptions.ConnectionError, 
