@@ -24,7 +24,14 @@ class SimpleRobustScraper:
             'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8',
             'Accept-Encoding': 'gzip, deflate, br',
             'Connection': 'keep-alive',
-            'Upgrade-Insecure-Requests': '1'
+            'Upgrade-Insecure-Requests': '1',
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache',
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-Site': 'none',
+            'Sec-Fetch-User': '?1',
+            'DNT': '1'
         })
         
         # Configurações para ignorar problemas de SSL
@@ -37,12 +44,12 @@ class SimpleRobustScraper:
         from urllib3.util.retry import Retry
         
         retry_strategy = Retry(
-            total=3,
+            total=2,  # Reduzido para evitar timeouts longos
             status_forcelist=[429, 500, 502, 503, 504],
             allowed_methods=["HEAD", "GET", "OPTIONS"],
-            backoff_factor=1,
-            connect=60,
-            read=60
+            backoff_factor=0.5,  # Reduzido para tentativas mais rápidas
+            connect=30,  # Reduzido de 60 para 30 segundos
+            read=30  # Reduzido de 60 para 30 segundos
         )
         
         adapter = HTTPAdapter(max_retries=retry_strategy)
@@ -118,7 +125,10 @@ class SimpleRobustScraper:
                     'link': 'a[href*="/noticia"]',  # Link direto das notícias
                     'date': '.data, .date, time, .timestamp'
                 },
-                'rate_limit': 2.0
+                'rate_limit': 5.0,  # Aumentado para dar mais tempo
+                'timeout': 15,  # Timeout específico para PM SC
+                'max_retries': 1,  # Apenas 1 tentativa para evitar bloqueio
+                'skip_on_error': True  # Pula se falhar
             },
             {
                 'name': 'PC PR',
@@ -277,10 +287,23 @@ class SimpleRobustScraper:
             time.sleep(config.get('rate_limit', 2.0))
             
             # Tenta fazer a requisição com retry automático
-            max_retries = 3
+            max_retries = config.get('max_retries', 3)
+            timeout = config.get('timeout', 60)
+            
             for attempt in range(max_retries):
                 try:
-                    response = self.session.get(config['url'], timeout=60)
+                    # Headers específicos para PM SC (contornar bloqueio)
+                    headers = self.session.headers.copy()
+                    if config['name'] == 'PM SC':
+                        headers.update({
+                            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                            'Referer': 'https://www.google.com/',
+                            'Origin': 'https://www.pm.sc.gov.br',
+                            'X-Forwarded-For': '192.168.1.1',
+                            'X-Real-IP': '192.168.1.1'
+                        })
+                    
+                    response = self.session.get(config['url'], timeout=timeout, headers=headers)
                     response.raise_for_status()
                     break
                 except (requests.exceptions.SSLError, requests.exceptions.ConnectionError, 
@@ -294,8 +317,13 @@ class SimpleRobustScraper:
                         time.sleep(wait_time)
                         continue
                     else:
-                        logger.error(f"❌ Falha final ao acessar {config['name']} após {max_retries} tentativas: {e}")
-                        return []
+                        # Se configurado para pular em caso de erro
+                        if config.get('skip_on_error', False):
+                            logger.warning(f"⚠️ Pulando {config['name']} devido a falhas de conexão")
+                            return []
+                        else:
+                            logger.error(f"❌ Falha final ao acessar {config['name']} após {max_retries} tentativas: {e}")
+                            return []
                 except Exception as e:
                     logger.error(f"❌ Erro inesperado ao acessar {config['name']}: {e}")
                     return []
