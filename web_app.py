@@ -164,5 +164,4 @@ if __name__ == "__main__":
         logger.error(f"❌ Erro ao iniciar servidor web: {e}")
     finally:
         # Para o keep-alive quando o servidor parar
-        global keep_alive_running
         keep_alive_running = False
