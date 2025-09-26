@@ -19,13 +19,33 @@ class SimpleRobustScraper:
     def __init__(self):
         self.session = requests.Session()
         self.session.headers.update({
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1'
         })
         
         # Configurações para ignorar problemas de SSL
         self.session.verify = False
         import urllib3
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        
+        # Configurações de timeout e retry
+        from requests.adapters import HTTPAdapter
+        from urllib3.util.retry import Retry
+        
+        retry_strategy = Retry(
+            total=3,
+            status_forcelist=[429, 500, 502, 503, 504],
+            method_whitelist=["HEAD", "GET", "OPTIONS"],
+            backoff_factor=1
+        )
+        
+        adapter = HTTPAdapter(max_retries=retry_strategy)
+        self.session.mount("http://", adapter)
+        self.session.mount("https://", adapter)
         
     def get_scraping_configs(self):
         """
@@ -253,10 +273,15 @@ class SimpleRobustScraper:
                     response = self.session.get(config['url'], timeout=30)
                     response.raise_for_status()
                     break
-                except (requests.exceptions.SSLError, requests.exceptions.ConnectionError) as e:
+                except (requests.exceptions.SSLError, requests.exceptions.ConnectionError, 
+                        requests.exceptions.ConnectionResetError, requests.exceptions.Timeout,
+                        requests.exceptions.ChunkedEncodingError, requests.exceptions.ConnectTimeout,
+                        requests.exceptions.ReadTimeout, requests.exceptions.HTTPError) as e:
                     if attempt < max_retries - 1:
+                        wait_time = 2 ** attempt  # Backoff exponencial: 2s, 4s, 8s
                         logger.warning(f"Tentativa {attempt + 1} falhou para {config['name']}: {e}")
-                        time.sleep(2)  # Espera antes de tentar novamente
+                        logger.info(f"⏳ Aguardando {wait_time}s antes da próxima tentativa...")
+                        time.sleep(wait_time)
                         continue
                     else:
                         logger.error(f"❌ Falha final ao acessar {config['name']} após {max_retries} tentativas: {e}")
