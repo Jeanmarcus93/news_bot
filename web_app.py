@@ -84,7 +84,7 @@ def keep_alive_ping():
     global keep_alive_running
     
     keep_alive_running = True
-    logger.info("🔄 Sistema de keep-alive iniciado (ping a cada 15s)")
+    logger.info("🔄 Sistema de keep-alive iniciado (ping a cada 8s)")
     
     while keep_alive_running:
         try:
@@ -92,7 +92,7 @@ def keep_alive_ping():
             port = int(os.environ.get('PORT', 5000))
             url = f"http://localhost:{port}/health"
             
-            response = requests.get(url, timeout=10)
+            response = requests.get(url, timeout=5)
             if response.status_code == 200:
                 logger.debug("💓 Keep-alive ping realizado com sucesso")
             else:
@@ -101,8 +101,8 @@ def keep_alive_ping():
         except Exception as e:
             logger.error(f"❌ Erro no keep-alive ping: {e}")
         
-        # Aguarda 15 segundos antes do próximo ping
-        time.sleep(15)
+        # Aguarda 8 segundos antes do próximo ping (mais frequente)
+        time.sleep(8)
 
 @app.route('/')
 def health_check():
@@ -156,7 +156,7 @@ if __name__ == "__main__":
     # Inicia o servidor web
     port = int(os.environ.get('PORT', 5000))
     logger.info(f"🌐 Servidor web iniciando na porta {port}")
-    logger.info("🔄 Sistema de keep-alive ativo para evitar suspensão do Render")
+    logger.info("🔄 Sistema de keep-alive ativo para evitar suspensão do Render (ping a cada 8s)")
     
     try:
         app.run(host='0.0.0.0', port=port, debug=False, threaded=True)

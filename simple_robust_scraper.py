@@ -103,7 +103,10 @@ class SimpleRobustScraper:
                     'link': 'h3 a',  # Links das notícias
                     'date': '.data, .date, time, .timestamp, .news-date'  # Datas das notícias
                 },
-                'rate_limit': 3.0
+                'rate_limit': 3.0,
+                'timeout': 20,  # Timeout específico para BM RS
+                'max_retries': 1,  # Apenas 1 tentativa
+                'skip_on_error': True  # Pula se falhar
             },
             {
                 'name': 'PC SC',
@@ -125,9 +128,9 @@ class SimpleRobustScraper:
                     'link': 'a[href*="/noticia"]',  # Link direto das notícias
                     'date': '.data, .date, time, .timestamp'
                 },
-                'rate_limit': 5.0,  # Aumentado para dar mais tempo
-                'timeout': 15,  # Timeout específico para PM SC
-                'max_retries': 1,  # Apenas 1 tentativa para evitar bloqueio
+                'rate_limit': 3.0,  # Reduzido para ser mais eficiente
+                'timeout': 10,  # Timeout reduzido para falhar mais rápido
+                'max_retries': 0,  # Sem tentativas para evitar bloqueio
                 'skip_on_error': True  # Pula se falhar
             },
             {
