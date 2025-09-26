@@ -79,7 +79,7 @@ class NewsBot:
         self.menu_keyboard = InlineKeyboardMarkup([
             [InlineKeyboardButton("🔄 Atualizar Notícias", callback_data="menu_update_news")],
             [InlineKeyboardButton("📰 Últimas Notícias", callback_data="menu_latest")],
-            [InlineKeyboardButton("👁️ Notícias Visualizadas", callback_data="menu_viewed")],
+            [InlineKeyboardButton("☑️ Notícias Visualizadas", callback_data="menu_viewed")],
             [InlineKeyboardButton("📡 Fontes", callback_data="menu_sources")]
         ])
         
