@@ -9,6 +9,7 @@ import logging
 from flask import Flask, jsonify
 import threading
 import time
+import requests
 
 # Configuração de logging
 logging.basicConfig(level=logging.INFO)
@@ -19,6 +20,8 @@ app = Flask(__name__)
 # Variável global para controlar o bot
 bot_thread = None
 bot_running = False
+keep_alive_thread = None
+keep_alive_running = False
 
 def run_bot():
     """Executa o bot em uma thread separada"""
@@ -76,12 +79,38 @@ def run_bot():
         logger.error(f"❌ Erro no bot: {e}")
         bot_running = False
 
+def keep_alive_ping():
+    """Sistema de keep-alive para evitar suspensão do Render"""
+    global keep_alive_running
+    
+    keep_alive_running = True
+    logger.info("🔄 Sistema de keep-alive iniciado (ping a cada 15s)")
+    
+    while keep_alive_running:
+        try:
+            # Faz uma requisição para o próprio servidor
+            port = int(os.environ.get('PORT', 5000))
+            url = f"http://localhost:{port}/health"
+            
+            response = requests.get(url, timeout=10)
+            if response.status_code == 200:
+                logger.debug("💓 Keep-alive ping realizado com sucesso")
+            else:
+                logger.warning(f"⚠️ Keep-alive ping falhou: {response.status_code}")
+                
+        except Exception as e:
+            logger.error(f"❌ Erro no keep-alive ping: {e}")
+        
+        # Aguarda 15 segundos antes do próximo ping
+        time.sleep(15)
+
 @app.route('/')
 def health_check():
     """Endpoint de health check"""
     return jsonify({
         "status": "online",
         "bot_running": bot_running,
+        "keep_alive_active": keep_alive_running,
         "service": "News Bot RS",
         "message": "Bot de notícias de segurança pública funcionando"
     })
@@ -92,7 +121,9 @@ def health():
     return jsonify({
         "status": "healthy",
         "timestamp": time.time(),
-        "bot_active": bot_running
+        "bot_active": bot_running,
+        "keep_alive_active": keep_alive_running,
+        "uptime": "Servidor ativo com keep-alive"
     })
 
 @app.route('/start')
@@ -118,11 +149,20 @@ if __name__ == "__main__":
     # Aguarda um pouco para o bot inicializar
     time.sleep(3)
     
+    # Inicia o sistema de keep-alive em thread separada
+    keep_alive_thread = threading.Thread(target=keep_alive_ping, daemon=True)
+    keep_alive_thread.start()
+    
     # Inicia o servidor web
     port = int(os.environ.get('PORT', 5000))
     logger.info(f"🌐 Servidor web iniciando na porta {port}")
+    logger.info("🔄 Sistema de keep-alive ativo para evitar suspensão do Render")
     
     try:
         app.run(host='0.0.0.0', port=port, debug=False, threaded=True)
     except Exception as e:
         logger.error(f"❌ Erro ao iniciar servidor web: {e}")
+    finally:
+        # Para o keep-alive quando o servidor parar
+        global keep_alive_running
+        keep_alive_running = False
