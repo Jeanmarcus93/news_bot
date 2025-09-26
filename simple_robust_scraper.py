@@ -34,7 +34,7 @@ class SimpleRobustScraper:
         return [
             {
                 'name': 'PRF Nacional',
-                'url': 'https://www.gov.br/prf/pt-br/noticias/ultimas',
+                'url': 'https://www.gov.br/prf/pt-br/noticias/ultimas/',
                 'selectors': {
                     'articles': 'h2',  # PRF usa h2 para notícias
                     'title': 'h2 a',  # Títulos são links dentro de h2
@@ -45,7 +45,7 @@ class SimpleRobustScraper:
             },
             {
                 'name': 'PF Nacional',
-                'url': 'https://www.gov.br/pf/pt-br/assuntos/noticias/ultimas-noticias',
+                'url': 'https://www.gov.br/pf/pt-br/assuntos/noticias/ultimas-noticias/',
                 'selectors': {
                     'articles': 'article, .item, .noticia, .materia',
                     'title': 'h3 a, h2 a, .titulo a, .materia-titulo a',
@@ -67,7 +67,7 @@ class SimpleRobustScraper:
             },
             {
                 'name': 'Polícia Civil',
-                'url': 'https://www.pc.rs.gov.br/noticias',
+                'url': 'https://www.pc.rs.gov.br/noticias/',
                 'selectors': {
                     'articles': 'h3, h4, .item, .noticia, article',  # Múltiplos selectors para capturar
                     'title': 'h3 a, h4 a, .titulo a, a',  # Títulos das notícias
@@ -78,7 +78,7 @@ class SimpleRobustScraper:
             },
             {
                 'name': 'Brigada Militar',
-                'url': 'https://www.brigadamilitar.rs.gov.br/noticias',
+                'url': 'https://www.brigadamilitar.rs.gov.br/noticias/',
                 'selectors': {
                     'articles': 'h3',  # Notícias estão nos h3
                     'title': 'h3 a',  # Títulos são links dentro de h3
@@ -89,7 +89,7 @@ class SimpleRobustScraper:
             },
             {
                 'name': 'PM SC',
-                'url': 'https://www.pm.sc.gov.br/noticias/index?page=2',
+                'url': 'https://www.pm.sc.gov.br/noticias/',
                 'selectors': {
                     'articles': 'a[href*="/noticias/"]',  # Links diretos para notícias
                     'title': 'a[href*="/noticias/"]',  # Título é o texto do link
@@ -100,7 +100,7 @@ class SimpleRobustScraper:
             },
             {
                 'name': 'PM PR',
-                'url': 'https://www.pmpr.pr.gov.br/Noticias',
+                'url': 'https://www.pmpr.pr.gov.br/Noticias/',
                 'selectors': {
                     'articles': 'article, .item, .noticia, .materia',
                     'title': 'h3 a, h2 a, .titulo a, .materia-titulo a',
@@ -133,7 +133,7 @@ class SimpleRobustScraper:
             },
             {
                 'name': 'PC PR',
-                'url': 'https://www.policiacivil.pr.gov.br/noticias',
+                'url': 'https://www.policiacivil.pr.gov.br/noticias/',
                 'selectors': {
                     'articles': 'article, .item, h3, h4',
                     'title': 'h3 a, h4 a, .titulo a',
