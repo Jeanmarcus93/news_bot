@@ -284,13 +284,13 @@ class SimpleRobustScraper:
                         logger.warning(f"Tentativa {attempt + 1} falhou para {config['name']}: {e}")
                         logger.info(f"⏳ Aguardando {wait_time}s antes da próxima tentativa...")
                         time.sleep(wait_time)
-                    continue
+                        continue
                     else:
                         logger.error(f"❌ Falha final ao acessar {config['name']} após {max_retries} tentativas: {e}")
                         return []
-        except Exception as e:
+                except Exception as e:
                     logger.error(f"❌ Erro inesperado ao acessar {config['name']}: {e}")
-            return []
+                    return []
     
             soup = BeautifulSoup(response.content, 'html.parser')
             
