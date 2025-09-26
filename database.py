@@ -61,6 +61,20 @@ class NewsDatabase:
                     )
                 ''')
                 
+                # Tabela para usuários ativos (para notificações)
+                cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS active_users (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        user_id TEXT UNIQUE NOT NULL,
+                        username TEXT,
+                        first_name TEXT,
+                        last_name TEXT,
+                        is_active BOOLEAN DEFAULT TRUE,
+                        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                        last_activity TEXT DEFAULT CURRENT_TIMESTAMP
+                    )
+                ''')
+                
                 conn.commit()
                 logger.info("Database initialized successfully")
                 
@@ -178,6 +192,42 @@ class NewsDatabase:
         except Exception as e:
             logger.error(f"Error getting viewed news: {e}")
             return []
+    
+    def get_view_stats(self):
+        """Retorna estatísticas de visualização das notícias"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                
+                # Total de notícias
+                cursor.execute("SELECT COUNT(*) FROM news")
+                total = cursor.fetchone()[0]
+                
+                # Notícias visualizadas
+                cursor.execute("SELECT COUNT(*) FROM news WHERE viewed = TRUE")
+                viewed = cursor.fetchone()[0]
+                
+                # Notícias não visualizadas
+                unviewed = total - viewed
+                
+                # Porcentagem de visualizadas
+                viewed_percentage = (viewed / total * 100) if total > 0 else 0
+                
+                return {
+                    'total': total,
+                    'viewed': viewed,
+                    'unviewed': unviewed,
+                    'viewed_percentage': viewed_percentage
+                }
+                
+        except Exception as e:
+            logger.error(f"Error getting view stats: {e}")
+            return {
+                'total': 0,
+                'viewed': 0,
+                'unviewed': 0,
+                'viewed_percentage': 0
+            }
     
     def get_news_by_category(self, category, limit=None):
         """Retorna notícias de uma categoria específica"""
@@ -314,4 +364,86 @@ class NewsDatabase:
         except Exception as e:
             logger.error(f"Error getting recent activities: {e}")
             return []
+    
+    def add_active_user(self, user_id, username=None, first_name=None, last_name=None):
+        """Adiciona ou atualiza um usuário ativo"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    INSERT OR REPLACE INTO active_users 
+                    (user_id, username, first_name, last_name, is_active, last_activity)
+                    VALUES (?, ?, ?, ?, TRUE, CURRENT_TIMESTAMP)
+                ''', (user_id, username, first_name, last_name))
+                conn.commit()
+                return True
+        except Exception as e:
+            logger.error(f"Error adding active user: {e}")
+            return False
+    
+    def get_active_users(self):
+        """Retorna lista de usuários ativos"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    SELECT user_id, username, first_name, last_name 
+                    FROM active_users 
+                    WHERE is_active = TRUE
+                ''')
+                return cursor.fetchall()
+        except Exception as e:
+            logger.error(f"Error getting active users: {e}")
+            return []
+    
+    def deactivate_user(self, user_id):
+        """Desativa um usuário (para parar notificações)"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    UPDATE active_users 
+                    SET is_active = FALSE 
+                    WHERE user_id = ?
+                ''', (user_id,))
+                conn.commit()
+                return True
+        except Exception as e:
+            logger.error(f"Error deactivating user: {e}")
+            return False
+    
+    def news_exists(self, url):
+        """Verifica se uma notícia já existe baseada na URL ou título"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                
+                # Se a URL não for None, verifica por URL
+                if url:
+                    cursor.execute("SELECT id FROM news WHERE url = ?", (url,))
+                    if cursor.fetchone():
+                        return True
+                
+                return False
+                
+        except Exception as e:
+            logger.error(f"Error checking if news exists: {e}")
+            return False
+    
+    def news_exists_by_title(self, title, source):
+        """Verifica se uma notícia já existe baseada no título e fonte"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                
+                # Verifica por título e fonte (para casos onde URL é None)
+                cursor.execute("SELECT id FROM news WHERE title = ? AND source = ?", (title, source))
+                if cursor.fetchone():
+                    return True
+                
+                return False
+                
+        except Exception as e:
+            logger.error(f"Error checking if news exists by title: {e}")
+            return False
     

@@ -32,15 +32,15 @@ class NewsBot:
         # Mapeamento de emojis para fontes (na ordem solicitada)
         self.source_emojis = {
             'PRF Nacional': '🚔',
-            'PF Nacional': '🏛️',
-            'MPRS': '⚖️',
-            'Polícia Civil': '👮',
-            'Brigada Militar': '🚔',
+            'PF Nacional': '🕵🏻‍♂️',
+            'PC RS': '🕵🏻‍♂️',
+            'BM RS': '🚔',
+            'PC SC': '🕵🏻‍♂️',
             'PM SC': '🚔',
+            'PC PR': '🕵🏻‍♂️',
             'PM PR': '🚔',
             'DOF MS': '🚔',
-            'PC SC': '👮',
-            'PC PR': '👮',
+            'MP RS': '⚖️',
             'Todas as Fontes': '📰'
         }
         self.scraper = NewsScraper()
@@ -75,42 +75,10 @@ class NewsBot:
         self.menu_keyboard = InlineKeyboardMarkup([
             [InlineKeyboardButton("🔄 Atualizar Notícias", callback_data="menu_update_news")],
             [InlineKeyboardButton("📰 Últimas Notícias", callback_data="menu_latest")],
-            [InlineKeyboardButton("☑️ Notícias Visualizadas", callback_data="menu_viewed")],
-            [InlineKeyboardButton("📡 Fontes", callback_data="menu_sources")]
+            [InlineKeyboardButton("☑️ Notícias Visualizadas", callback_data="menu_viewed")]
         ])
         
-        # Teclado para menu de fontes
-        self.sources_keyboard = self._create_sources_keyboard()
     
-    def _create_sources_keyboard(self):
-        """Cria o teclado com botões para cada fonte de notícias"""
-        # Lista de fontes na ordem solicitada
-        sources = [
-            ("🚔 PRF Nacional", "source_prf"),
-            ("🏛️ PF Nacional", "source_pf"),
-            ("⚖️ MPRS", "source_mprs"),
-            ("👮 Polícia Civil", "source_pc"),
-            ("🚔 Brigada Militar", "source_brigada"),
-            ("🚔 PM SC", "source_pm_sc"),
-            ("🚔 PM PR", "source_pm_pr"),
-            ("🚔 DOF MS", "source_dof"),
-            ("👮 PC SC", "source_pc_sc"),
-            ("👮 PC PR", "source_pc_pr"),
-            ("📰 Todas as Fontes", "source_all")
-        ]
-        
-        # Organiza em grupos de 2 botões por linha
-        keyboard = []
-        for i in range(0, len(sources), 2):
-            row = [InlineKeyboardButton(sources[i][0], callback_data=sources[i][1])]
-            if i + 1 < len(sources):
-                row.append(InlineKeyboardButton(sources[i + 1][0], callback_data=sources[i + 1][1]))
-            keyboard.append(row)
-        
-        # Adiciona botão de voltar
-        keyboard.append([InlineKeyboardButton("⬅️ Voltar ao Menu", callback_data="menu_main")])
-        
-        return InlineKeyboardMarkup(keyboard)
     
     def _get_available_sources(self):
         """Retorna fontes com notícias disponíveis"""
@@ -139,16 +107,16 @@ class NewsBot:
     def get_source_name_from_url(self, url):
         """Converte URL da fonte para nome limpo"""
         url_mapping = {
-            'https://www.gov.br/prf/pt-br/noticias/ultimas': 'PRF Nacional',
+            'https://www.gov.br/prf/pt-br/noticias': 'PRF Nacional',
             'https://www.gov.br/pf/pt-br/assuntos/noticias/ultimas-noticias': 'PF Nacional',
-            'https://www.mprs.mp.br/noticias/': 'MPRS',
-            'https://www.pc.rs.gov.br/noticias': 'Polícia Civil RS',
-            'https://www.brigadamilitar.rs.gov.br/noticias': 'Brigada Militar',
-            'https://www.pm.sc.gov.br/noticias/index?page=2': 'PM SC',
+            'https://www.pc.rs.gov.br/noticias': 'PC RS',
+            'https://www.brigadamilitar.rs.gov.br/noticias': 'BM RS',
+            'https://pc.sc.gov.br/noticias/': 'PC SC',
+            'https://www.pm.sc.gov.br/noticias': 'PM SC',
+            'https://www.policiacivil.pr.gov.br/Agencia-de-Noticias': 'PC PR',
             'https://www.pmpr.pr.gov.br/Noticias': 'PM PR',
             'https://www.dof.ms.gov.br/noticias/': 'DOF MS',
-            'https://pc.sc.gov.br/noticias/': 'PC SC',
-            'https://www.policiacivil.pr.gov.br/noticias': 'PC PR'
+            'https://www.mprs.mp.br/noticias/': 'MP RS'
         }
         
         # Busca por correspondência exata primeiro
@@ -169,36 +137,47 @@ class NewsBot:
             logger.info("🔄 Iniciando scraping robusto de todas as fontes...")
             news_list = self.robust_scraper.scrape_all_sites()
             
+            found_count = len(news_list)
             saved_count = 0
             for news in news_list:
                 try:
-                    # Determina o nome da fonte baseado na URL
-                    source_url = news.get('source', '')
-                    source_name = self.get_source_name_from_url(source_url)
+                    # O scraper robusto já fornece o nome correto da fonte
+                    source_name = news.get('source', 'Fonte Oficial')
                     
-                    # Salva no banco de dados
-                    self.db.add_news(
+                    # Salva no banco de dados (só incrementa se realmente salvou)
+                    if self.db.add_news(
                         title=news['title'],
                         content='',  # Conteúdo não é extraído no scraper simples
                         url=news['link'],
                         source=source_name,
                         category=news.get('category', 'geral'),
                         published_date=news.get('date', '')
-                    )
-                    saved_count += 1
+                    ):
+                        saved_count += 1
                 except Exception as e:
                     logger.error(f"Erro ao salvar notícia: {e}")
                     continue
             
-            logger.info(f"✅ Scraping robusto concluído: {saved_count} notícias salvas")
-            return saved_count
+            logger.info(f"✅ Scraping robusto concluído: {found_count} encontradas, {saved_count} salvas")
+            return found_count, saved_count
             
         except Exception as e:
             logger.error(f"❌ Erro no scraping robusto: {e}")
-            return 0
+            return 0, 0
     
     async def start_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Comando /start - Mensagem de boas-vindas"""
+        # Registra o usuário para receber notificações
+        user = update.effective_user
+        if user:
+            self.db.add_active_user(
+                user_id=str(user.id),
+                username=user.username,
+                first_name=user.first_name,
+                last_name=user.last_name
+            )
+            logger.info(f"Usuário registrado para notificações: {user.id} (@{user.username})")
+        
         welcome_message = """🔍 Bot de Notícias RS - Crimes e Apreensões
 
 Bem-vindo ao bot que monitora notícias sobre:
@@ -215,6 +194,7 @@ Use o botão **📋 MENU** abaixo para acessar:
 • 📋 Notícias Apresentadas  
 • 📊 Estatísticas
 
+
 Digite /help para ver todos os comandos disponíveis."""
         
         await update.message.reply_text(welcome_message, reply_markup=self.reply_keyboard)
@@ -230,20 +210,10 @@ Digite /help para ver todos os comandos disponíveis."""
         **🎯 Opções do Menu:**
         🔄 **Atualizar Notícias** - Busca novas notícias em todas as fontes
         📰 **Últimas Notícias** - Ver notícias não visualizadas
-        👁️ **Notícias Visualizadas** - Ver notícias já lidas
+        ☑️ **Notícias Visualizadas** - Ver notícias já lidas
         📡 **Fontes** - Ver notícias por fonte específica
 
-**📝 Comandos por Texto:**
-/start - Mensagem de boas-vindas
-/latest - Últimas notícias
-/category - Filtrar por categoria
-/stats - Estatísticas do bot
-/search <termo> - Buscar notícias específicas
-/refresh_api - Buscar via NewsAPI
-/refresh_all - Buscar em todas as fontes
-/help - Esta ajuda
-
-**🎯 Dica:** Use o botão **📋 MENU** para acesso rápido às funcionalidades principais!"""
+"""
         
         await update.message.reply_text(help_message, reply_markup=self.reply_keyboard)
     
@@ -496,9 +466,10 @@ Digite /help para ver todos os comandos disponíveis."""
             
             # 2. Busca via scraping robusto (Fontes oficiais)
             try:
-                robust_count = await self.scrape_all_news_robust()
-                total_saved += robust_count
-                logger.info(f"Scraping Robusto: {robust_count} novas notícias salvas")
+                robust_found, robust_saved = await self.scrape_all_news_robust()
+                total_found += robust_found
+                total_saved += robust_saved
+                logger.info(f"Scraping Robusto: {robust_found} encontradas, {robust_saved} salvas")
             except Exception as e:
                 logger.error(f"Erro no Scraping Robusto: {e}")
             
@@ -565,27 +536,56 @@ Digite /help para ver todos os comandos disponíveis."""
             # Log da atividade
             self.db.log_activity("Auto refresh (60min)", f"Found: {total_found}, Saved: {total_saved}")
             
-            # Notifica no chat se há novas notícias
-            if total_saved > 0 and TELEGRAM_CHAT_ID:
+            # Notifica todos os usuários ativos se há novas notícias
+            if total_saved > 0:
                 try:
-                    message = f"🔄 **Atualização Automática Concluída**\n\n"
+                    active_users = self.db.get_active_users()
+                    logger.info(f"Enviando notificações para {len(active_users)} usuários ativos")
+                    
+                    message = f"🔔 **Novas Notícias Disponíveis!**\n\n"
                     message += f"📊 **{total_saved} novas notícias** encontradas!\n"
                     message += f"📰 Total de notícias no banco: {self.db.get_total_news_count()}\n\n"
                     message += "Use '📋 MENU' → '📰 Últimas Notícias' para ver as novidades!"
                     
-                    await self.application.bot.send_message(
-                        chat_id=TELEGRAM_CHAT_ID,
-                        text=message,
-                        parse_mode='Markdown'
-                    )
-                    logger.info(f"✅ Notificação enviada para chat {TELEGRAM_CHAT_ID}: {total_saved} novas notícias")
+                    notifications_sent = 0
+                    for user_id, username, first_name, last_name in active_users:
+                        try:
+                            await self.application.bot.send_message(
+                                chat_id=user_id,
+                                text=message,
+                                parse_mode='Markdown'
+                            )
+                            notifications_sent += 1
+                        except Exception as e:
+                            logger.warning(f"Erro ao enviar notificação para usuário {user_id}: {e}")
+                            # Se o usuário bloqueou o bot, desativa as notificações
+                            if "bot was blocked" in str(e).lower() or "chat not found" in str(e).lower():
+                                self.db.deactivate_user(user_id)
+                                logger.info(f"Usuário {user_id} desativado (bot bloqueado)")
+                    
+                    logger.info(f"✅ {notifications_sent} notificações enviadas com sucesso")
+                    
                 except Exception as e:
-                    logger.error(f"Erro ao enviar notificação automática: {e}")
+                    logger.error(f"Erro ao enviar notificações automáticas: {e}")
             
             logger.info(f"✅ Atualização automática concluída: {total_saved} novas notícias")
             
         except Exception as e:
             logger.error(f"Erro na atualização automática: {e}")
+    
+    async def viewed_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Callback para notícias visualizadas"""
+        try:
+            query = update.callback_query
+            await query.answer()
+            
+            if query.data == "viewed_all":
+                # Mostra todas as notícias visualizadas
+                await self.show_viewed_news(update, context)
+                
+        except Exception as e:
+            logger.error(f"Erro no callback de notícias visualizadas: {e}")
+            await query.edit_message_text("❌ Erro ao processar solicitação. Tente novamente.")
     
     def run_auto_refresh(self):
         """Executa a atualização automática em uma thread separada"""
@@ -623,9 +623,9 @@ Escolha uma das opções abaixo:
 
 🔄 **Atualizar Notícias** - Busca novas notícias em todas as fontes
 📰 **Últimas Notícias** - Ver notícias não visualizadas
-👁️ **Notícias Visualizadas** - Ver notícias já lidas
+☑️ **Notícias Visualizadas** - Ver notícias já lidas
 
-**💡 Dica:** As notícias são marcadas como visualizadas automaticamente quando você as vê!"""
+"""
         
         await update.message.reply_text(menu_message, reply_markup=self.menu_keyboard, parse_mode='Markdown')
     
@@ -745,11 +745,8 @@ Escolha uma das opções abaixo:
                 # Mostra notícias não visualizadas
                 await self.latest_command(update, context)
             elif action == "viewed":
-                # Mostra notícias visualizadas
-                await self.show_viewed_news(update, context)
-            elif action == "sources":
-                # Mostra menu de fontes
-                await self.show_sources_menu(update, context)
+                # Mostra menu de notícias visualizadas com opções de fontes
+                await self.show_viewed_news_menu(update, context)
             elif action == "main":
                 # Volta ao menu principal
                 await self.show_main_menu(update, context)
@@ -758,25 +755,6 @@ Escolha uma das opções abaixo:
         except Exception as e:
             logger.error(f"Error in menu_callback: {e}")
             await query.edit_message_text("❌ Erro ao processar opção do menu.")
-    
-    async def show_sources_menu(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Mostra o menu de fontes"""
-        try:
-            message = "📡 **Menu de Fontes**\n\n"
-            message += "Selecione uma fonte para ver todas as notícias:\n"
-            message += "• 🚨 Inclui notícias já visualizadas\n"
-            message += "• 📰 Mostra histórico completo da fonte\n"
-            message += "• 🔍 Útil para análise detalhada\n\n"
-            message += "_Clique em uma fonte abaixo:_"
-            
-            await update.callback_query.edit_message_text(
-                message, 
-                parse_mode='Markdown',
-                reply_markup=self.sources_keyboard
-            )
-        except Exception as e:
-            logger.error(f"Error in show_sources_menu: {e}")
-            await update.callback_query.edit_message_text("❌ Erro ao mostrar menu de fontes.")
     
     async def show_main_menu(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Mostra o menu principal"""
@@ -802,14 +780,14 @@ Escolha uma das opções abaixo:
         source_names = {
             "prf": "PRF Nacional",
             "pf": "PF Nacional",
-            "mprs": "MPRS",
-            "pc": "Polícia Civil RS",
-            "brigada": "Brigada Militar",
-            "pm_sc": "PM SC",
-            "pm_pr": "PM PR",
-            "dof": "DOF MS",
+            "pc_rs": "PC RS",
+            "bm_rs": "BM RS",
             "pc_sc": "PC SC",
+            "pm_sc": "PM SC",
             "pc_pr": "PC PR",
+            "pm_pr": "PM PR",
+            "dof_ms": "DOF MS",
+            "mp_rs": "MP RS",
             "all": "Todas as Fontes"
         }
         
@@ -846,7 +824,7 @@ Escolha uma das opções abaixo:
                     message,
                     parse_mode='Markdown',
                     reply_markup=InlineKeyboardMarkup([
-                        [InlineKeyboardButton("⬅️ Voltar às Fontes", callback_data="menu_sources")]
+                        [InlineKeyboardButton("⬅️ Voltar às Fontes", callback_data="menu_viewed")]
                     ])
                 )
                 return
@@ -929,13 +907,13 @@ Escolha uma das opções abaixo:
             # Mensagem final
             final_msg = f"✅ **Concluído!**\n\n"
             final_msg += f"📊 Mostradas {min(total_news, 15)} de {total_news} notícias de **{source_name}**\n\n"
-            final_msg += "Use '📡 Fontes' para ver outras fontes."
+            final_msg += "Use '☑️ Notícias Visualizadas' para ver outras fontes."
             
             await context.bot.send_message(
                 chat_id=update.callback_query.message.chat_id,
                 text=final_msg,
                 reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("📡 Ver Outras Fontes", callback_data="menu_sources")]
+                    [InlineKeyboardButton("☑️ Ver Outras Fontes", callback_data="menu_viewed")]
                 ])
             )
             
@@ -958,7 +936,7 @@ Escolha uma das opções abaixo:
                     message,
                     parse_mode='Markdown',
                     reply_markup=InlineKeyboardMarkup([
-                        [InlineKeyboardButton("⬅️ Voltar às Fontes", callback_data="menu_sources")]
+                        [InlineKeyboardButton("⬅️ Voltar às Fontes", callback_data="menu_viewed")]
                     ])
                 )
                 return
@@ -1046,7 +1024,7 @@ Escolha uma das opções abaixo:
                 chat_id=update.callback_query.message.chat_id,
                 text=final_msg,
                 reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("📡 Ver Fontes Específicas", callback_data="menu_sources")]
+                    [InlineKeyboardButton("☑️ Ver Fontes Específicas", callback_data="menu_viewed")]
                 ])
             )
             
@@ -1092,6 +1070,40 @@ Escolha uma das opções abaixo:
         query = update.callback_query
         await query.answer("✅ Esta notícia já foi marcada como lida!", show_alert=True)
     
+    async def show_viewed_news_menu(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Mostra menu de notícias visualizadas com opções de fontes"""
+        try:
+            stats = self.db.get_view_stats()
+            
+            message = "☑️ **Notícias Visualizadas**\n\n"
+            message += f"📊 **Estatísticas:**\n"
+            message += f"• Total: {stats['total']} notícias\n"
+            message += f"• Visualizadas: {stats['viewed']} ({stats['viewed_percentage']:.1f}%)\n"
+            message += f"• Não visualizadas: {stats['unviewed']}\n\n"
+            message += "Escolha uma opção:"
+            
+            # Teclado com opções de fontes e visualizadas (2 colunas)
+            keyboard = InlineKeyboardMarkup([
+                [InlineKeyboardButton("📰 Todas Visualizadas", callback_data="viewed_all")],
+                [InlineKeyboardButton("🚔 PRF Nacional", callback_data="source_prf"),
+                 InlineKeyboardButton("🕵🏻‍♂️ PF Nacional", callback_data="source_pf")],
+                [InlineKeyboardButton("🚔 BM RS", callback_data="source_bm_rs"),
+                 InlineKeyboardButton("🕵🏻‍♂️ PC RS", callback_data="source_pc_rs")],
+                [InlineKeyboardButton("🚔 PM SC", callback_data="source_pm_sc"),
+                 InlineKeyboardButton("🕵🏻‍♂️ PC SC", callback_data="source_pc_sc")],
+                [InlineKeyboardButton("🚔 PM PR", callback_data="source_pm_pr"),
+                 InlineKeyboardButton("🕵🏻‍♂️ PC PR", callback_data="source_pc_pr")],
+                [InlineKeyboardButton("🚔 DOF MS", callback_data="source_dof_ms"),
+                 InlineKeyboardButton("⚖️ MP RS", callback_data="source_mp_rs")],
+                [InlineKeyboardButton("🔙 Voltar ao Menu", callback_data="menu_main")]
+            ])
+            
+            await update.callback_query.edit_message_text(message, reply_markup=keyboard, parse_mode='Markdown')
+            
+        except Exception as e:
+            logger.error(f"Erro ao mostrar menu de notícias visualizadas: {e}")
+            await update.callback_query.edit_message_text("❌ Erro ao carregar menu. Tente novamente.")
+    
     async def show_viewed_news(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Mostra notícias já visualizadas"""
         try:
@@ -1111,7 +1123,7 @@ Escolha uma das opções abaixo:
             
             # Mensagem inicial com estatísticas
             total_viewed = len(news_list)
-            stats_message = f"👁️ **{total_viewed} notícias visualizadas**\n\n"
+            stats_message = f"☑️ **{total_viewed} notícias visualizadas**\n\n"
             stats_message += f"📊 **Estatísticas:**\n"
             stats_message += f"• Total: {stats['total']} notícias\n"
             stats_message += f"• Visualizadas: {stats['viewed']} ({stats['viewed_percentage']:.1f}%)\n"
@@ -1214,7 +1226,7 @@ Escolha uma das opções abaixo:
             
             # Scraping tradicional
             message += "✅ Scraping Tradicional - Sempre ativo\n"
-            message += "   🌐 Portais: PRF, PF, Brigada Militar, Polícia Civil\n"
+            message += "   🌐 Portais: PRF, PF, PC RS, BM RS, PC SC, PM SC, PC PR, PM PR, DOF MS, MP RS\n"
             
             # Configurações do bot
             message += "\n🤖 **Configurações do Bot:**\n"
@@ -1265,6 +1277,10 @@ Escolha uma das opções abaixo:
         
         # Message handler para botões fixos
         application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self.handle_text_message))
+        
+        
+        # Viewed news callback handlers
+        application.add_handler(CallbackQueryHandler(self.viewed_callback, pattern=r'^viewed_all$'))
 
 def main():
     """Função principal"""

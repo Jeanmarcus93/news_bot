@@ -51,12 +51,12 @@ class SimpleRobustScraper:
         
     def get_scraping_configs(self):
         """
-        Configurações de scraping apenas para fontes oficiais de segurança
+        Configurações de scraping para fontes oficiais de segurança
         """
         return [
             {
                 'name': 'PRF Nacional',
-                'url': 'https://www.gov.br/prf/pt-br/noticias/ultimas/',
+                'url': 'https://www.gov.br/prf/pt-br/noticias',
                 'selectors': {
                     'articles': 'h2',  # PRF usa h2 para notícias
                     'title': 'h2 a',  # Títulos são links dentro de h2
@@ -67,7 +67,7 @@ class SimpleRobustScraper:
             },
             {
                 'name': 'PF Nacional',
-                'url': 'https://www.gov.br/pf/pt-br/assuntos/noticias/ultimas-noticias/',
+                'url': 'https://www.gov.br/pf/pt-br/assuntos/noticias/ultimas-noticias',
                 'selectors': {
                     'articles': 'article, .item, .noticia, .materia',
                     'title': 'h3 a, h2 a, .titulo a, .materia-titulo a',
@@ -77,19 +77,8 @@ class SimpleRobustScraper:
                 'rate_limit': 2.0
             },
             {
-                'name': 'MPRS',
-                'url': 'https://www.mprs.mp.br/noticias/',
-                'selectors': {
-                    'articles': 'h2, a[href*="/noticias/"]',  # h2 para títulos e links diretos para notícias
-                    'title': 'h2 a, a[href*="/noticias/"]',   # Títulos são links dentro de h2 ou links diretos
-                    'link': 'h2 a, a[href*="/noticias/"]',    # Links das notícias
-                    'date': '.data, .date, time, .materia-data, .publicado'  # Datas das notícias
-                },
-                'rate_limit': 2.0
-            },
-            {
-                'name': 'Polícia Civil',
-                'url': 'https://www.pc.rs.gov.br/noticias/',
+                'name': 'PC RS',
+                'url': 'https://www.pc.rs.gov.br/noticias',
                 'selectors': {
                     'articles': 'h3, h4, .item, .noticia, article, .news-item',  # Múltiplos selectors para capturar
                     'title': 'h3 a, h4 a, .titulo a, a, .news-title',  # Títulos das notícias
@@ -99,8 +88,8 @@ class SimpleRobustScraper:
                 'rate_limit': 3.0  # Aumentado para dar mais tempo
             },
             {
-                'name': 'Brigada Militar',
-                'url': 'https://www.brigadamilitar.rs.gov.br/noticias/',
+                'name': 'BM RS',
+                'url': 'https://www.brigadamilitar.rs.gov.br/noticias',
                 'selectors': {
                     'articles': 'h3',  # Notícias estão nos h3
                     'title': 'h3 a',  # Títulos são links dentro de h3
@@ -110,8 +99,19 @@ class SimpleRobustScraper:
                 'rate_limit': 3.0
             },
             {
+                'name': 'PC SC',
+                'url': 'https://pc.sc.gov.br/noticias/',
+                'selectors': {
+                    'articles': 'article, .post, h3',  # Usa article, .post e h3
+                    'title': 'article, .post, h3',  # Título dos elementos
+                    'link': 'article a, .post a, h3 a',  # Links dentro dos elementos
+                    'date': '.data, .date, time, .timestamp'
+                },
+                'rate_limit': 2.0
+            },
+            {
                 'name': 'PM SC',
-                'url': 'https://www.pm.sc.gov.br/noticias/',
+                'url': 'https://www.pm.sc.gov.br/noticias',
                 'selectors': {
                     'articles': '.noticia, a[href*="/noticia"]',  # Usa .noticia e links diretos
                     'title': '.noticia, a[href*="/noticia"]',  # Título do elemento .noticia ou link
@@ -121,8 +121,19 @@ class SimpleRobustScraper:
                 'rate_limit': 2.0
             },
             {
+                'name': 'PC PR',
+                'url': 'https://www.policiacivil.pr.gov.br/Agencia-de-Noticias',
+                'selectors': {
+                    'articles': 'article, .item, h3, h4',
+                    'title': 'h3 a, h4 a, .titulo a',
+                    'link': 'h3 a, h4 a, .titulo a',
+                    'date': 'time, .date, .data, .timestamp'
+                },
+                'rate_limit': 2.0
+            },
+            {
                 'name': 'PM PR',
-                'url': 'https://www.pmpr.pr.gov.br/Noticias/',
+                'url': 'https://www.pmpr.pr.gov.br/Noticias',
                 'selectors': {
                     'articles': 'article, .item, .noticia, .materia',
                     'title': 'h3 a, h2 a, .titulo a, .materia-titulo a',
@@ -143,24 +154,13 @@ class SimpleRobustScraper:
                 'rate_limit': 2.0
             },
             {
-                'name': 'PC SC',
-                'url': 'https://pc.sc.gov.br/',
+                'name': 'MP RS',
+                'url': 'https://www.mprs.mp.br/noticias/',
                 'selectors': {
-                    'articles': 'article, .post, h3',  # Usa article, .post e h3
-                    'title': 'article, .post, h3',  # Título dos elementos
-                    'link': 'article a, .post a, h3 a',  # Links dentro dos elementos
-                    'date': '.data, .date, time, .timestamp'
-                },
-                'rate_limit': 2.0
-            },
-            {
-                'name': 'PC PR',
-                'url': 'https://www.policiacivil.pr.gov.br/noticias/',
-                'selectors': {
-                    'articles': 'article, .item, h3, h4',
-                    'title': 'h3 a, h4 a, .titulo a',
-                    'link': 'h3 a, h4 a, .titulo a',
-                    'date': 'time, .date, .data, .timestamp'
+                    'articles': 'h2, a[href*="/noticias/"]',  # h2 para títulos e links diretos para notícias
+                    'title': 'h2 a, a[href*="/noticias/"]',   # Títulos são links dentro de h2 ou links diretos
+                    'link': 'h2 a, a[href*="/noticias/"]',    # Links das notícias
+                    'date': '.data, .date, time, .materia-data, .publicado'  # Datas das notícias
                 },
                 'rate_limit': 2.0
             }
@@ -194,7 +194,7 @@ class SimpleRobustScraper:
                 
         return False
 
-    def extract_news_data(self, element, selectors, base_url):
+    def extract_news_data(self, element, selectors, base_url, source_name):
         """
         Extrai dados da notícia de um elemento HTML
         """
@@ -215,10 +215,14 @@ class SimpleRobustScraper:
             if link_elem and link_elem.get('href'):
                 link = link_elem['href']
                 if link.startswith('/'):
-                    # Remove /noticias/ da base_url se o link já contém
+                    # Remove duplicação de /noticias/ ou /Noticias/ na base_url
                     base_clean = base_url.rstrip('/')
                     if base_clean.endswith('/noticias') and link.startswith('/noticias/'):
+                        # Remove /noticias da base e adiciona o link completo
                         link = base_clean.replace('/noticias', '') + link
+                    elif base_clean.endswith('/Noticias') and link.startswith('/Noticia/'):
+                        # Remove /Noticias da base e adiciona o link completo (PM PR)
+                        link = base_clean.replace('/Noticias', '') + link
                     else:
                         link = base_clean + link
                 elif not link.startswith('http'):
@@ -228,10 +232,14 @@ class SimpleRobustScraper:
                 if element.get('href'):
                     link = element['href']
                     if link.startswith('/'):
-                        # Remove /noticias/ da base_url se o link já contém
+                        # Remove duplicação de /noticias/ ou /Noticias/ na base_url
                         base_clean = base_url.rstrip('/')
                         if base_clean.endswith('/noticias') and link.startswith('/noticias/'):
+                            # Remove /noticias da base e adiciona o link completo
                             link = base_clean.replace('/noticias', '') + link
+                        elif base_clean.endswith('/Noticias') and link.startswith('/Noticia/'):
+                            # Remove /Noticias da base e adiciona o link completo (PM PR)
+                            link = base_clean.replace('/Noticias', '') + link
                         else:
                             link = base_clean + link
                     elif not link.startswith('http'):
@@ -249,7 +257,7 @@ class SimpleRobustScraper:
                 'title': title,
                 'link': link,
                 'date': date_str,
-                'source': base_url
+                'source': source_name
             }
             
         except Exception as e:
@@ -299,7 +307,7 @@ class SimpleRobustScraper:
             logger.info(f"📰 Encontrados {len(articles)} elementos")
             
             for article in articles[:20]:  # Limita a 20 notícias por site
-                news_data = self.extract_news_data(article, config['selectors'], config['url'])
+                news_data = self.extract_news_data(article, config['selectors'], config['url'], config['name'])
                 
                 if news_data and self.is_relevant_news(news_data['title']):
                     # Determina categoria baseada na palavra-chave

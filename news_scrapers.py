@@ -463,7 +463,16 @@ class NewsScraper:
         for news in news_list:
             try:
                 # Verifica se a notícia já existe
-                if not self.db.news_exists(news['url']):
+                news_already_exists = False
+                
+                # Se tem URL, verifica por URL
+                if news['url']:
+                    news_already_exists = self.db.news_exists(news['url'])
+                else:
+                    # Se não tem URL, verifica por título e fonte
+                    news_already_exists = self.db.news_exists_by_title(news['title'], news['source'])
+                
+                if not news_already_exists:
                     news_id = self.db.add_news(
                         title=news['title'],
                         content=news['content'],
