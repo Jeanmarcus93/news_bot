@@ -27,10 +27,35 @@ def run_bot():
         bot_running = True
         logger.info("🤖 Iniciando bot em thread separada...")
         
-        # Simula que o bot está rodando (já está funcionando pelo main)
-        # O bot real já está ativo pelo processo principal
-        while True:
-            time.sleep(60)  # Mantém a thread viva
+        # Importa e executa o bot real
+        from bot import NewsBot
+        from config import TELEGRAM_TOKEN
+        from telegram.ext import Application
+        
+        if not TELEGRAM_TOKEN:
+            logger.error("❌ TELEGRAM_TOKEN não configurado!")
+            return
+            
+        # Cria o bot
+        bot = NewsBot()
+        
+        # Configura a aplicação
+        application = Application.builder().token(TELEGRAM_TOKEN).build()
+        
+        # Configura os handlers
+        bot.setup_handlers(application)
+        
+        # Define a aplicação no bot para usar no scheduler
+        bot.application = application
+        
+        logger.info("🤖 Bot iniciado com sucesso!")
+        logger.info("📱 Use /start no Telegram para começar a usar o bot")
+        
+        # Inicia o scheduler para atualização automática
+        bot.start_scheduler()
+        
+        # Inicia o bot
+        application.run_polling()
             
     except Exception as e:
         logger.error(f"❌ Erro no bot: {e}")
@@ -75,20 +100,14 @@ if __name__ == "__main__":
     bot_thread = threading.Thread(target=run_bot, daemon=True)
     bot_thread.start()
     
-    # Importa e inicia o bot real em thread separada
-    def start_bot_main():
-        try:
-            from bot import main as bot_main
-            bot_main()
-        except Exception as e:
-            logger.error(f"❌ Erro ao iniciar bot: {e}")
-    
-    # Inicia o bot em thread separada para não bloquear o Flask
-    bot_main_thread = threading.Thread(target=start_bot_main, daemon=True)
-    bot_main_thread.start()
+    # Aguarda um pouco para o bot inicializar
+    time.sleep(3)
     
     # Inicia o servidor web
     port = int(os.environ.get('PORT', 5000))
     logger.info(f"🌐 Servidor web iniciando na porta {port}")
     
-    app.run(host='0.0.0.0', port=port, debug=False)
+    try:
+        app.run(host='0.0.0.0', port=port, debug=False, threaded=True)
+    except Exception as e:
+        logger.error(f"❌ Erro ao iniciar servidor web: {e}")
