@@ -22,7 +22,8 @@ DATABASE_PATH = 'news_bot.db'
 SEARCH_KEYWORDS = [
     # Drogas
     'apreensão drogas', 'cocaína', 'maconha', 'crack', 'ecstasy',
-    'heroína', 'LSD', 'drogas ilícitas', 'entorpecentes',
+    'heroína', 'LSD', 'drogas ilícitas', 'entorpecentes', 'bunker',
+    'venda drogas', 'comércio drogas', 'narcóticos', 'substâncias ilícitas',
     
     # Armas
     'apreensão armas', 'arma de fogo', 'munição', 'explosivo',
@@ -30,7 +31,7 @@ SEARCH_KEYWORDS = [
     
     # Tráfico
     'tráfico drogas', 'tráfico armas', 'organização criminosa',
-    'cartel', 'traficante', 'contrabando',
+    'cartel', 'traficante', 'contrabando', 'grupo criminoso',
     
     # Facções
     'PCC', 'Comando Vermelho', 'Terceiro Comando',
@@ -38,7 +39,8 @@ SEARCH_KEYWORDS = [
     
     # GAECO e operações especiais
     'GAECO', 'lavagem de dinheiro', 'contas abertas',
-    'operação policial', 'investigação criminal'
+    'operação policial', 'investigação criminal', 'destruído',
+    'destruição', 'desmantela'
 ]
 
 RS_LOCATIONS = [

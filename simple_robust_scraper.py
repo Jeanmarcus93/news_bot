@@ -161,7 +161,9 @@ class SimpleRobustScraper:
         target_keywords = [
             'drogas', 'armas', 'maconha', 'cocaína', 'ecstasy', 'skunk', 
             'apreensão', 'prisão', 'tráfico', 'facção', 'operação',
-            'gaeco', 'lavagem de dinheiro', 'contas abertas', 'investigação criminal'
+            'gaeco', 'lavagem de dinheiro', 'contas abertas', 'investigação criminal',
+            'bunker', 'venda', 'destruído', 'destruição', 'comércio', 'entorpecentes',
+            'desmantela', 'grupo criminoso', 'narcóticos', 'substâncias ilícitas'
         ]
         
         # Verifica se alguma palavra-chave está presente
@@ -277,13 +279,13 @@ class SimpleRobustScraper:
                     # Determina categoria baseada na palavra-chave
                     title_lower = news_data['title'].lower()
                     
-                    if any(word in title_lower for word in ['drogas', 'maconha', 'cocaína', 'ecstasy', 'skunk']):
+                    if any(word in title_lower for word in ['drogas', 'maconha', 'cocaína', 'ecstasy', 'skunk', 'bunker', 'venda', 'comércio', 'entorpecentes', 'narcóticos']):
                         news_data['category'] = "drogas"
                     elif 'armas' in title_lower:
                         news_data['category'] = "armas"
-                    elif any(word in title_lower for word in ['tráfico', 'facção']):
+                    elif any(word in title_lower for word in ['tráfico', 'facção', 'grupo criminoso']):
                         news_data['category'] = "tráfico"
-                    elif any(word in title_lower for word in ['apreensão', 'prisão', 'operação']):
+                    elif any(word in title_lower for word in ['apreensão', 'prisão', 'operação', 'destruído', 'destruição', 'desmantela']):
                         news_data['category'] = "policial"
                     elif any(word in title_lower for word in ['gaeco', 'lavagem', 'investigação']):
                         news_data['category'] = "investigação"
