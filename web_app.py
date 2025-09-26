@@ -27,10 +27,11 @@ def run_bot():
         bot_running = True
         logger.info("🤖 Iniciando bot em thread separada...")
         
-        # Importa e executa o bot
-        from bot import main as bot_main
-        bot_main()
-        
+        # Simula que o bot está rodando (já está funcionando pelo main)
+        # O bot real já está ativo pelo processo principal
+        while True:
+            time.sleep(60)  # Mantém a thread viva
+            
     except Exception as e:
         logger.error(f"❌ Erro no bot: {e}")
         bot_running = False
@@ -73,6 +74,13 @@ if __name__ == "__main__":
     # Inicia o bot em thread separada
     bot_thread = threading.Thread(target=run_bot, daemon=True)
     bot_thread.start()
+    
+    # Importa e inicia o bot real
+    try:
+        from bot import main as bot_main
+        bot_main()
+    except Exception as e:
+        logger.error(f"❌ Erro ao iniciar bot: {e}")
     
     # Inicia o servidor web
     port = int(os.environ.get('PORT', 5000))
