@@ -165,7 +165,7 @@ class SimpleRobustScraper:
                 'rate_limit': 2.0
             }
         ]
-
+    
     def is_relevant_news(self, title, content=""):
         """
         Verifica se a notícia é relevante baseada no título e conteúdo
@@ -276,22 +276,22 @@ class SimpleRobustScraper:
                     response.raise_for_status()
                     break
                 except (requests.exceptions.SSLError, requests.exceptions.ConnectionError, 
-                        requests.exceptions.ConnectionResetError, requests.exceptions.Timeout,
-                        requests.exceptions.ChunkedEncodingError, requests.exceptions.ConnectTimeout,
-                        requests.exceptions.ReadTimeout, requests.exceptions.HTTPError) as e:
+                        requests.exceptions.Timeout, requests.exceptions.ChunkedEncodingError, 
+                        requests.exceptions.ConnectTimeout, requests.exceptions.ReadTimeout, 
+                        requests.exceptions.HTTPError, ConnectionResetError) as e:
                     if attempt < max_retries - 1:
                         wait_time = 2 ** attempt  # Backoff exponencial: 2s, 4s, 8s
                         logger.warning(f"Tentativa {attempt + 1} falhou para {config['name']}: {e}")
                         logger.info(f"⏳ Aguardando {wait_time}s antes da próxima tentativa...")
                         time.sleep(wait_time)
-                        continue
+                    continue
                     else:
                         logger.error(f"❌ Falha final ao acessar {config['name']} após {max_retries} tentativas: {e}")
                         return []
-                except Exception as e:
+        except Exception as e:
                     logger.error(f"❌ Erro inesperado ao acessar {config['name']}: {e}")
-                    return []
-            
+            return []
+    
             soup = BeautifulSoup(response.content, 'html.parser')
             
             # Busca por artigos/notícias
@@ -361,7 +361,7 @@ class SimpleRobustScraper:
         
         logger.info(f"📊 Total final: {len(unique_news)} notícias únicas")
         return unique_news
-
+    
 def main():
     """
     Função principal para teste
