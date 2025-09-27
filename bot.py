@@ -15,7 +15,7 @@ from datetime import datetime
 from database import NewsDatabase
 from news_scrapers import NewsScraper
 from simple_robust_scraper import SimpleRobustScraper
-from config import TELEGRAM_TOKEN, TELEGRAM_CHAT_ID
+from config.config import TELEGRAM_TOKEN, TELEGRAM_CHAT_ID
 
 # Configuração de logging
 logging.basicConfig(
