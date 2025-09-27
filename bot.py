@@ -1285,19 +1285,19 @@ Escolha uma das opções abaixo:
 def main():
     """Função principal"""
     print("""
-    ╔══════════════════════════════════════════════════════════════╗
-    ║         Bot de Notícias RS - ATUALIZAÇÃO AUTOMÁTICA          ║
-    ║                                                              ║
-    ║  Monitora notícias sobre:                                    ║
-    ║  • 🚨 Apreensão de drogas                                   ║
-    ║  • 🔫 Apreensão de armas                                    ║
-    ║  • 🏴 Tráfico e organizações criminosas                     ║
-    ║  • 👥 Facções e milícias                                    ║
-    ║                                                              ║
-    ║  🎯 Botões fixos na parte inferior para fácil acesso!       ║
-    ║  ⏰ Atualização automática a cada 60 minutos                ║
-    ║  Fontes: NewsAPI + Scraping Robusto + Portais Oficiais       ║
-    ╚══════════════════════════════════════════════════════════════╝
+    ================================================================
+    Bot de Noticias RS - ATUALIZACAO AUTOMATICA
+    ================================================================
+    Monitora noticias sobre:
+    - Apreensao de drogas
+    - Apreensao de armas  
+    - Trafico e organizacoes criminosas
+    - Faccoes e milicias
+    ================================================================
+    Botoes fixos na parte inferior para facil acesso!
+    Atualizacao automatica a cada 60 minutos
+    Fontes: NewsAPI + Scraping Robusto + Portais Oficiais
+    ================================================================
     """)
     
     if not TELEGRAM_TOKEN:
